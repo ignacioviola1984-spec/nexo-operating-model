@@ -22,7 +22,7 @@ sys.path.insert(0, HERE)
 
 
 def _cmd_gen_data(args):
-    import generate_synthetic_cartera as gen
+    from data import generate_synthetic_cartera as gen
     path = gen.main(seed=args.seed)
     print(f"Cartera sintetica generada en: {path}")
 
