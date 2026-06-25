@@ -64,10 +64,10 @@ with st.expander("¿Cómo usar Nexo?", expanded=not st.session_state.get("help_s
         "abrís, no pasa nada.\n\n"
         "**Tu data es tuya:** queda en tu computadora. Solo el texto que redacta la IA usa "
         "internet; tus clientes y tus números nunca se publican.\n\n"
-        "**Reporte:** cuando **[TU NOMBRE]** te lo pida, apretá **«Exportar reporte de métricas»** "
+        "**Reporte:** cuando **Ignacio Viola** te lo pida, apretá **«Exportar reporte de métricas»** "
         "y mandale el archivo .md. Es anónimo: no tiene datos de tus clientes, solo conteos y "
         "porcentajes.\n\n"
-        "_Productor: **[NOMBRE DEL PRODUCTOR]**._"
+        "_Productor: **Facundo Puente**._"
     )
 
 SEV_EMOJI = {"ALTA": "🔴", "MEDIA": "🟠", "BAJA": "🟢"}
