@@ -13,7 +13,7 @@ productor de seguros:
 Nada se exporta sin la decisión del productor. Los números los calcula el código;
 el modelo sólo redacta.
 
-Correr:  streamlit run nexo/app.py
+Correr:  streamlit run app.py
 """
 
 import os
@@ -25,7 +25,8 @@ from dotenv import load_dotenv
 HERE = os.path.dirname(os.path.abspath(__file__))
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
-load_dotenv(os.path.join(HERE, "..", ".env"))
+import paths
+load_dotenv(paths.ENV_PATH)   # <repo>/.env
 
 # En un host, la key llega como secret -> al entorno antes de crear el cliente.
 # Envuelto en try/except: sin archivo de secrets, acceder a st.secrets puede

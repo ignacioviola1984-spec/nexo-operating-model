@@ -2,15 +2,16 @@
 paths.py - Canonical filesystem paths for Nexo (single source of truth).
 
 Every module derives its paths from here so the data file, the generated Excel,
-the shared-state JSON and the audit trail are never spelled out twice. Nexo lives
-at <repo>/nexo/ and reuses the repo-root .env for ANTHROPIC_API_KEY.
+the shared-state JSON and the audit trail are never spelled out twice. paths.py
+sits at the repository root, so REPO_ROOT is THIS repo's own root and the .env
+holding ANTHROPIC_API_KEY is expected at <repo>/.env.
 """
 
 import os
 
-HERE = os.path.dirname(os.path.abspath(__file__))          # <repo>/nexo
-REPO_ROOT = os.path.abspath(os.path.join(HERE, ".."))      # <repo>
-ENV_PATH = os.path.join(REPO_ROOT, ".env")                 # shared key with finance projects
+HERE = os.path.dirname(os.path.abspath(__file__))          # repo root (paths.py lives here)
+REPO_ROOT = HERE                                           # this repo's root (standalone)
+ENV_PATH = os.path.join(REPO_ROOT, ".env")                 # <repo>/.env (ANTHROPIC_API_KEY)
 
 DATA_DIR = os.path.join(HERE, "data")
 OUTPUTS_DIR = os.path.join(HERE, "outputs")

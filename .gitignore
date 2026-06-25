@@ -1,4 +1,7 @@
-# Nexo runtime artifacts (generated; never committed). Paths are relative to nexo/.
+# Nexo runtime artifacts (generated; never committed). Paths are relative to the repo root.
+
+# Secrets: the ANTHROPIC_API_KEY lives in <repo>/.env and is NEVER committed.
+.env
 
 # Shared-state + audit trail written at run time
 nexo_state.json
