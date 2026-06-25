@@ -41,6 +41,7 @@ import cartera_core as cc
 import review
 import nexo_orchestrator as orch
 import llm
+import report_metrics
 from shared_state import CarteraContext
 from outputs import excel_writer
 
@@ -48,6 +49,26 @@ st.set_page_config(page_title="Nexo · co-piloto del productor", layout="wide")
 st.title("Nexo - co-piloto del productor de seguros")
 st.caption("Cartera sintética de demo. Los números los calcula el código; los agentes "
            "redactan. Vos aprobás cada acción antes de exportar nada (human-in-the-loop).")
+
+# Help panel for the broker (non-technical). Open by default the first time.
+with st.expander("¿Cómo usar Nexo?", expanded=not st.session_state.get("help_seen", False)):
+    st.session_state["help_seen"] = True
+    st.markdown(
+        "**Qué es Nexo:** un asistente que revisa tu cartera y te propone a quién conviene "
+        "contactar hoy (renovaciones, cobranzas, reactivaciones y oportunidades de cross-sell), "
+        "con un mensaje ya redactado.\n\n"
+        "**Tu rutina diaria:** abrí la app una vez por día, mirá la bandeja y **aprobá, editá o "
+        "rechazá** lo que quieras. Nada se envía solo: vos seguís mandando los mensajes por tus "
+        "canales de siempre (WhatsApp, mail, teléfono).\n\n"
+        "**No reemplaza tu operatoria:** usalo como un extra, cuando te sirva. Si un día no lo "
+        "abrís, no pasa nada.\n\n"
+        "**Tu data es tuya:** queda en tu computadora. Solo el texto que redacta la IA usa "
+        "internet; tus clientes y tus números nunca se publican.\n\n"
+        "**Reporte:** cuando **[TU NOMBRE]** te lo pida, apretá **«Exportar reporte de métricas»** "
+        "y mandale el archivo .md. Es anónimo: no tiene datos de tus clientes, solo conteos y "
+        "porcentajes.\n\n"
+        "_Productor: **[NOMBRE DEL PRODUCTOR]**._"
+    )
 
 SEV_EMOJI = {"ALTA": "🔴", "MEDIA": "🟠", "BAJA": "🟢"}
 TIPO_LABEL = {"renovacion": "Renovación", "cobranza": "Cobranza",
@@ -80,6 +101,11 @@ with st.sidebar:
             st.session_state.ctx_state = ctx.state
             st.session_state.issues = issues
             st.session_state.export_bytes = None
+            st.session_state.metrics_md = None
+            try:
+                report_metrics.record_run(ctx.state)   # count this run (PII-free)
+            except Exception:
+                pass
         except Exception as e:
             st.session_state.ctx_state = None
             st.error(f"No se pudo cargar/correr la cartera: {e}")
@@ -173,6 +199,24 @@ with tab_inbox:
             "⬇ Descargar acciones_aprobadas.xlsx", st.session_state.export_bytes,
             file_name="acciones_aprobadas.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            use_container_width=True)
+
+    st.markdown("**Reporte de métricas (anónimo)**")
+    st.caption("Este reporte no contiene datos de clientes, solo conteos y porcentajes.")
+    cm1, cm2 = st.columns([1, 2])
+    if cm1.button("📊 Exportar reporte de métricas (anonimizado)", use_container_width=True):
+        try:
+            out = report_metrics.generate(state=ctx.state)
+            st.session_state.metrics_md = out["md"]
+            st.success("Reporte generado. Este reporte no contiene datos de clientes, "
+                       "solo conteos y porcentajes.")
+        except report_metrics.PrivacyError as e:
+            st.session_state.metrics_md = None
+            st.error(f"No se generó el reporte (control de privacidad): {e}")
+    if st.session_state.get("metrics_md"):
+        cm2.download_button(
+            "⬇ Descargar metrics_report.md", st.session_state.metrics_md,
+            file_name="metrics_report.md", mime="text/markdown",
             use_container_width=True)
 
 # --------------------------------------------------------------------------

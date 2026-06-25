@@ -221,6 +221,13 @@ def run(cartera_path=None, ctx=None):
         print(f"  Excel de acciones aprobadas: {path}")
     print(f"  Estado guardado en: {os.path.basename(saved)} "
           f"({len(ctx.state['audit'])} eventos de auditoría)")
+    # Additive: record this run's PII-free summary so the anonymized metrics report
+    # can aggregate across runs. Wrapped so it can never break the close.
+    try:
+        import report_metrics
+        report_metrics.record_run(ctx.state)
+    except Exception as e:                       # pragma: no cover
+        ctx.audit("report_metrics", "skip", f"no se registró la métrica de la corrida: {e}")
     return ctx
 
 

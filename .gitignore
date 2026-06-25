@@ -11,8 +11,10 @@ audit_log.jsonl
 __pycache__/
 *.pyc
 
-# Generated Excel exports (the demo cartera under data/ IS committed; exports are not)
-outputs/*.xlsx
+# Generated outputs (Excel exports, metrics history + reports). The demo cartera
+# under data/ IS committed; everything generated under outputs/ is not.
+outputs/*
+!outputs/.gitkeep
 
 # Real broker data - the synthetic demo cartera is committed, real client PII NEVER is.
 data/cartera_real*.xlsx
