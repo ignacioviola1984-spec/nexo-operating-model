@@ -256,6 +256,7 @@ class Cartera:
             "comision_mensual_total": comision_mensual,
             "mix_por_aseguradora": {k: dict(v) for k, v in sorted(mix_aseg.items())},
             "mix_por_ramo": {k: dict(v) for k, v in sorted(mix_ramo.items())},
+            "polizas_en_mora": len(en_mora),
             "pct_en_mora_polizas": round(len(en_mora) / len(activas) * 100, 2) if activas else 0.0,
             "pct_en_mora_prima": round(prima_mora / prima_activa * 100, 2) if prima_activa else 0.0,
             "vencimientos_proximos": len(self.policies_expiring(expiring_days, as_of)),

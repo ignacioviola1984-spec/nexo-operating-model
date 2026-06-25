@@ -106,40 +106,42 @@ def pending(ctx):
     return list_actions(ctx, estado=PENDIENTE)
 
 
-def approve(ctx, action_id, note=""):
-    """Broker approves the proposal as-is. mensaje_final = the proposed message."""
+def approve(ctx, action_id, note="", by=DECIDED_BY):
+    """Broker approves the proposal as-is. mensaje_final = the proposed message.
+    `by` records the approver; CI/replay passes by='auto' so an auto-approval is
+    never recorded as a human sign-off."""
     d = _find(ctx, action_id)
     d["estado"] = APROBADA
     d["mensaje_final"] = d.get("mensaje_final") or d["mensaje_propuesto"]
     d["decision_note"] = note
-    d["decided_by"] = DECIDED_BY
+    d["decided_by"] = by
     d["ts_decidida"] = now_iso()
-    ctx.audit(DECIDED_BY, "APROBADA", f"{d['tipo']} · {d['cliente_nombre']}" + (f" · {note}" if note else ""))
+    ctx.audit(by, "APROBADA", f"{d['tipo']} · {d['cliente_nombre']}" + (f" · {note}" if note else ""))
     return d
 
 
-def edit(ctx, action_id, nuevo_mensaje, note=""):
+def edit(ctx, action_id, nuevo_mensaje, note="", by=DECIDED_BY):
     """Broker edits the message text and approves it (status = editada)."""
     d = _find(ctx, action_id)
     d["estado"] = EDITADA
     d["mensaje_final"] = nuevo_mensaje
     d["decision_note"] = note
-    d["decided_by"] = DECIDED_BY
+    d["decided_by"] = by
     d["ts_decidida"] = now_iso()
-    ctx.audit(DECIDED_BY, "EDITADA", f"{d['tipo']} · {d['cliente_nombre']} · mensaje editado"
+    ctx.audit(by, "EDITADA", f"{d['tipo']} · {d['cliente_nombre']} · mensaje editado"
               + (f" · {note}" if note else ""))
     return d
 
 
-def reject(ctx, action_id, note=""):
+def reject(ctx, action_id, note="", by=DECIDED_BY):
     """Broker rejects the proposal. Logged with the reason; never exported."""
     d = _find(ctx, action_id)
     d["estado"] = RECHAZADA
     d["mensaje_final"] = None
     d["decision_note"] = note
-    d["decided_by"] = DECIDED_BY
+    d["decided_by"] = by
     d["ts_decidida"] = now_iso()
-    ctx.audit(DECIDED_BY, "RECHAZADA", f"{d['tipo']} · {d['cliente_nombre']}" + (f" · {note}" if note else ""))
+    ctx.audit(by, "RECHAZADA", f"{d['tipo']} · {d['cliente_nombre']}" + (f" · {note}" if note else ""))
     return d
 
 
