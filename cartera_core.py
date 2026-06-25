@@ -270,10 +270,15 @@ class Cartera:
 
 
 def load_cartera(path=None) -> Cartera:
-    """Load a cartera Excel into a Cartera. Defaults to the committed demo file."""
+    """Load a cartera Excel into a Cartera. Accepts a path or a file-like object
+    (e.g. a Streamlit upload). Defaults to the committed demo file. Falls back to
+    the first sheet if there is no sheet named 'cartera'."""
     import pandas as pd
     import paths
-    path = path or paths.DEMO_CARTERA
-    df = pd.read_excel(path, sheet_name="cartera", engine="openpyxl")
+    src = path if path is not None else paths.DEMO_CARTERA
+    try:
+        df = pd.read_excel(src, sheet_name="cartera", engine="openpyxl")
+    except (ValueError, KeyError):
+        df = pd.read_excel(src, sheet_name=0, engine="openpyxl")
     policies = [schema.Policy.from_row(rec) for rec in df.to_dict(orient="records")]
     return Cartera(policies)

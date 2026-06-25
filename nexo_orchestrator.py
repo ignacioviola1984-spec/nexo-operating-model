@@ -156,18 +156,17 @@ def hitl_gate(ctx):
 # Pipeline.
 # --------------------------------------------------------------------------
 
-def run(cartera_path=None, ctx=None):
-    cart = cc.load_cartera(cartera_path)
-    n_clients = len(cart.by_client())
-    print("=" * 64)
-    print(f"NEXO · co-piloto del productor de seguros | {len(cart.policies)} pólizas · {n_clients} clientes")
-    print("=" * 64)
+def build_inbox(cart, ctx=None):
+    """Run the 5 agents over the shared state and reconcile. Returns (ctx, issues).
 
+    This is the part the Streamlit app reuses: it builds a PENDING inbox without
+    touching the HITL gate, so the app can gate per action via buttons."""
     ctx = ctx or CarteraContext(fresh_audit=True)
-    ctx.audit("orchestrator", "start", f"{len(cart.policies)} pólizas, {n_clients} clientes")
+    ctx.audit("orchestrator", "start",
+              f"{len(cart.policies)} pólizas, {len(cart.by_client())} clientes")
 
-    # Run the 5 agents over the shared state. Analisis first: it computes the
-    # portfolio metrics the cross-checks reconcile against and feeds the dashboard.
+    # Analisis first: it computes the portfolio metrics the cross-checks reconcile
+    # against and feeds the dashboard.
     analisis_cartera_agent.run(cart, ctx)
     renovaciones_agent.run(cart, ctx, days=RENEW_DAYS)
     cobranza_agent.run(cart, ctx)
@@ -180,12 +179,26 @@ def run(cartera_path=None, ctx=None):
         for i in issues:
             ctx.audit("cross_check", "FAIL", i)
         ctx.put("orchestrator", {"status": "halted_inconsistent", "issues": issues})
+    else:
+        ctx.audit("cross_check", "ok", "el inbox reconcilia con los detectores")
+    return ctx, issues
+
+
+def run(cartera_path=None, ctx=None):
+    cart = cc.load_cartera(cartera_path)
+    n_clients = len(cart.by_client())
+    print("=" * 64)
+    print(f"NEXO · co-piloto del productor de seguros | {len(cart.policies)} pólizas · {n_clients} clientes")
+    print("=" * 64)
+
+    ctx = ctx or CarteraContext(fresh_audit=True)
+    ctx, issues = build_inbox(cart, ctx)
+    if issues:
         ctx.save()
         print("\n  Pipeline detenido: el inbox no reconcilia con los detectores.")
         for i in issues:
             print("   -", i)
         return ctx
-    ctx.audit("cross_check", "ok", "el inbox reconcilia con los detectores")
 
     # Consolidate into one prioritized inbox (severity, then confidence).
     inbox = review.prioritized(ctx)
