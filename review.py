@@ -52,6 +52,8 @@ class Action:
     datos: dict                # deterministic payload (numbers behind the action)
     mensaje_propuesto: str = ""
     poliza: Optional[str] = None
+    email: Optional[str] = None        # contact channel (for the broker, not the body)
+    telefono: Optional[str] = None
     estado: str = PENDIENTE
     mensaje_final: Optional[str] = None
     decision_note: str = ""

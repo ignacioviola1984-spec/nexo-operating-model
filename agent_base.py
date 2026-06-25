@@ -52,7 +52,8 @@ def cap(ctx, agente, candidates, limit):
 
 def emit(ctx, *, tipo, agente, cliente_id, nombre, ref, poliza,
          detalle, confianza, severidad, datos,
-         system, user_prompt, allowed_numbers, fallback):
+         system, user_prompt, allowed_numbers, fallback,
+         email=None, telefono=None):
     """Draft the message (LLM or template, always grounded), build the Action and
     submit it to the inbox as pendiente. Returns the Action."""
     drafted = llm.draft(system, user_prompt,
@@ -64,6 +65,7 @@ def emit(ctx, *, tipo, agente, cliente_id, nombre, ref, poliza,
         detalle=detalle, confianza=round(float(confianza), 4),
         severidad=severidad, datos=datos,
         mensaje_propuesto=drafted["text"], poliza=poliza,
+        email=email, telefono=telefono,
     )
     # Record which source wrote the message (llm / template / guarded fallback),
     # so the audit trail never passes a template off as the model's, and a

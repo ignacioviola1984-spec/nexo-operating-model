@@ -66,6 +66,7 @@ def run(cart, ctx, limit=None):
             datos={"has_ramo": c["has_ramo"], "missing_ramo": c["missing_ramo"],
                    "strength": c["strength"], "base_poliza": c["base_poliza"]},
             system=SYSTEM, user_prompt=prompt, allowed_numbers=[], fallback=fallback,
+            email=c["email"], telefono=c["telefono"],
         ))
 
     ctx.put(AGENTE, {"detectados": len(raw), "propuestos": len(actions)})

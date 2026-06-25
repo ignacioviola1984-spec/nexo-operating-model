@@ -73,6 +73,7 @@ def run(cart, ctx, months: int = 6, limit=None):
             datos={"dias_inactivo": c["dias_inactivo"], "ramos": c["ramos"],
                    "ultima_aseguradora": c["ultima_aseguradora"]},
             system=SYSTEM, user_prompt=prompt, allowed_numbers=[], fallback=fallback,
+            email=c["email"], telefono=c["telefono"],
         ))
 
     ctx.put(AGENTE, {"detectados": len(raw), "propuestos": len(actions), "meses_umbral": months})
