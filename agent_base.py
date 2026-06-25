@@ -68,9 +68,11 @@ def emit(ctx, *, tipo, agente, cliente_id, nombre, ref, poliza,
         email=email, telefono=telefono,
     )
     # Record which source wrote the message (llm / template / guarded fallback),
-    # so the audit trail never passes a template off as the model's, and a
-    # guard rejection is visible.
-    action.datos = {**datos, "_mensaje_source": drafted["source"]}
+    # so the audit trail never passes a template off as the model's, and a guard
+    # rejection is visible. Persist the allowed-number contract so the grounding
+    # eval checks the message against exactly what the agent permitted.
+    action.datos = {**datos, "_mensaje_source": drafted["source"],
+                    "_allowed_numbers": [str(n) for n in allowed_numbers]}
     review.add_action(ctx, action)
     return action
 
