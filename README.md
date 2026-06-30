@@ -105,7 +105,6 @@ reconciliacion, integridad de auditoria, frontera RBAC). Ambos deben estar verde
 - [nexo_os/data/schema/DATA_MODEL.md](nexo_os/data/schema/DATA_MODEL.md) - el esquema canonico.
 - [SECURITY.md](SECURITY.md) - datos, PII, backups, auditoria, seam deshabilitado.
 - [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) - despliegue local (maquina/servidor, Docker opcional).
-- [docs/CUTOVER.md](docs/CUTOVER.md) - plan de corte desde la version anterior.
 - [OPERATING-MODEL.md](OPERATING-MODEL.md) - como funciona y la frontera determinismo/HITL.
 - [REUSE_NOTES.md](REUSE_NOTES.md) - que se reuso de v1.
 
