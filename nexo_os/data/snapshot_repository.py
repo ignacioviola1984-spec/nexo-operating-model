@@ -237,6 +237,9 @@ class SnapshotRepository(NexoRepository):
     def read_audit(self) -> list[AuditEvent]:
         return self._select_audit(where=None, params=[], order_by="seq ASC")
 
+    def audit_count(self) -> int:
+        return int(self._con.execute("SELECT count(*) FROM audit_log").fetchone()[0])
+
     # --- ingestion support: materialize a snapshot ------------------------- #
     def materialize_snapshot(self, snapshot: DataSnapshot, data: dict[str, list[_Row]]) -> None:
         """Atomically archive the prior active snapshot and write a new one.

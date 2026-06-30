@@ -131,3 +131,7 @@ class NexoRepository(ABC):
     @abstractmethod
     def read_audit(self) -> list[AuditEvent]:
         """All audit events in chain order."""
+
+    @abstractmethod
+    def audit_count(self) -> int:
+        """Number of audit events (for chain-position ids)."""
