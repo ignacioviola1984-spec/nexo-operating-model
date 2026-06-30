@@ -45,6 +45,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _cmd_seed()
     if args.command == "ingest":
         return _cmd_ingest(args.workbook)
+    if args.command == "bootstrap-admin":
+        return _cmd_bootstrap_admin()
     if args.command == "backup":
         return _cmd_backup()
     if args.command == "restore":
@@ -101,6 +103,26 @@ def _cmd_ingest(workbook: str) -> int:
         repo.close()
     print(result.report.render_es())
     return 0 if result.ok else 1
+
+
+def _cmd_bootstrap_admin() -> int:
+    from datetime import datetime
+
+    from nexo_os import auth
+    from nexo_os.config import get_settings
+    from nexo_os.data.snapshot_repository import SnapshotRepository
+
+    s = get_settings()
+    repo = SnapshotRepository.open(s.store_path)
+    try:
+        user = auth.bootstrap_admin(repo, s, now=datetime.now())
+    except auth.AuthError as exc:
+        print(f"bootstrap-admin: {exc}", file=sys.stderr)
+        return 2
+    finally:
+        repo.close()
+    print(f"Admin provisionado: {user.usuario} (rol={user.rol.value})")
+    return 0
 
 
 def _cmd_backup() -> int:

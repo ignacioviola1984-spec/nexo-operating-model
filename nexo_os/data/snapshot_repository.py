@@ -33,6 +33,7 @@ from nexo_os.data.schema.models import (
     Poliza,
     Productor,
     Siniestro,
+    Usuario,
     _Row,
 )
 
@@ -239,6 +240,17 @@ class SnapshotRepository(NexoRepository):
 
     def audit_count(self) -> int:
         return int(self._con.execute("SELECT count(*) FROM audit_log").fetchone()[0])
+
+    # --- users (auth/RBAC) ------------------------------------------------- #
+    def add_usuario(self, usuario: Usuario) -> None:
+        self._insert("usuarios", usuario)
+
+    def get_usuario(self, usuario: str) -> Usuario | None:
+        rows = self._select(Usuario, "usuarios", where="usuario = ?", params=[usuario])
+        return rows[0] if rows else None  # type: ignore[return-value]
+
+    def list_usuarios(self) -> list[Usuario]:
+        return self._select(Usuario, "usuarios", order_by="usuario")  # type: ignore[return-value]
 
     # --- ingestion support: materialize a snapshot ------------------------- #
     def materialize_snapshot(self, snapshot: DataSnapshot, data: dict[str, list[_Row]]) -> None:

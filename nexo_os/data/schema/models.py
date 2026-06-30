@@ -142,6 +142,11 @@ class EstadoRun(StrEnum):
     error = "error"
 
 
+class Rol(StrEnum):
+    admin = "admin"  # uploads, user mgmt, all views
+    operador = "operador"  # operate the inbox + views
+
+
 # --------------------------------------------------------------------------- #
 # Base
 # --------------------------------------------------------------------------- #
@@ -330,6 +335,17 @@ class AgentRun(_Row):
     estado: EstadoRun
     resumen_json: str
     snapshot_id: str
+
+
+class Usuario(_Row):
+    """A broker seat. Plaintext passwords are never stored - only the bcrypt hash."""
+
+    usuario: str
+    nombre: str
+    rol: Rol
+    password_hash: str
+    activo: bool = True
+    creado_en: datetime
 
 
 class AuditEvent(_Row):

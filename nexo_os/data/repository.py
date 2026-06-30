@@ -27,6 +27,7 @@ from nexo_os.data.schema.models import (
     Poliza,
     Productor,
     Siniestro,
+    Usuario,
 )
 
 
@@ -135,3 +136,13 @@ class NexoRepository(ABC):
     @abstractmethod
     def audit_count(self) -> int:
         """Number of audit events (for chain-position ids)."""
+
+    # --- system tables: users (auth/RBAC) --------------------------------- #
+    @abstractmethod
+    def add_usuario(self, usuario: Usuario) -> None: ...
+
+    @abstractmethod
+    def get_usuario(self, usuario: str) -> Usuario | None: ...
+
+    @abstractmethod
+    def list_usuarios(self) -> list[Usuario]: ...

@@ -68,6 +68,16 @@ CREATE TABLE IF NOT EXISTS audit_log (
     hash         VARCHAR     NOT NULL
 );
 
+-- Broker seats with hashed credentials + role (auth/RBAC). System table.
+CREATE TABLE IF NOT EXISTS usuarios (
+    usuario       VARCHAR PRIMARY KEY,
+    nombre        VARCHAR     NOT NULL,
+    rol           VARCHAR     NOT NULL,   -- admin | operador
+    password_hash VARCHAR     NOT NULL,   -- bcrypt; plaintext is never stored
+    activo        BOOLEAN     NOT NULL,
+    creado_en     TIMESTAMP   NOT NULL
+);
+
 -- ===================== Operational tables (workbook sheets) ================ --
 
 CREATE TABLE IF NOT EXISTS clientes (
