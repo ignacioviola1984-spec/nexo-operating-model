@@ -1,0 +1,23 @@
+# Nexo Operating Model v3 - locked dependency set (no cloud SDKs, by design).
+# Resolved and verified to import on Python 3.14 (floor is 3.11). Regenerate with
+#   .venv/Scripts/python -m pip install -e ".[dev]" && pip freeze
+# The deterministic core + tests + evals run with NO API key; anthropic/streamlit
+# are for the prose layer and the local dashboard.
+
+anthropic==0.113.0
+pydantic==2.13.4
+pydantic-settings==2.14.2
+streamlit==1.58.0
+pandas==3.0.3
+openpyxl==3.1.5
+duckdb==1.5.4
+pyarrow==24.0.0
+python-dotenv==1.2.2
+structlog==26.1.0
+bcrypt==5.0.0
+
+# --- dev / quality gate ---
+pytest==9.1.1
+pytest-cov==7.1.0
+ruff==0.15.20
+black==26.5.1

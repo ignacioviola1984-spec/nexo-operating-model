@@ -20,3 +20,25 @@ outputs/*
 data/cartera_real*.xlsx
 data/*_real.xlsx
 data/real/
+
+# ---------------------------------------------------------------------------
+# Nexo v3 (nexo_os/) runtime artifacts - local system of record, NEVER committed.
+# ---------------------------------------------------------------------------
+.venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# The local DuckDB snapshot store (active + archived snapshots, acciones, audit
+# log, agent runs). This holds real broker data + PII once in production.
+nexo_os/data/store/
+# Local backups of the store (PII; keep off the repo, see SECURITY.md).
+backups/
+# The generated blank Excel template and any uploaded/real workbooks.
+nexo_os/data/templates/*.xlsx
+data/uploads/
+# Generated synthetic test workbook IS committed (visibly fake PII); broken
+# fixtures are committed too. Real uploads are not.
+

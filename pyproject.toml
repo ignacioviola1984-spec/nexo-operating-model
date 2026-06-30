@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nexo-os"
+version = "3.0.0"
+description = "Nexo Operating Model v3 - local, deterministic, human-in-the-loop operating system for a single insurance brokerage (AR)."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+authors = [{ name = "Ignacio Viola" }]
+
+# Pins are deliberately conservative lower-bounds; the locked, tested set lives in
+# requirements-v3.txt (emitted by `make install`). No cloud SDKs, by design (the
+# data path is local-only: an uploaded Excel workbook -> local DuckDB snapshot).
+dependencies = [
+    "anthropic>=0.40",        # Claude client; only used by the narrate (prose) layer
+    "pydantic>=2.6",          # typed domain model (the schema contract)
+    "pydantic-settings>=2.2", # config from .env, no magic numbers in code
+    "streamlit>=1.30",        # local dashboard + HITL approval inbox
+    "pandas>=2.2",            # workbook read/validate
+    "openpyxl>=3.1",          # read/write .xlsx (template + ingestion)
+    "duckdb>=1.0",            # local store / SQL engine (the snapshot store)
+    "pyarrow>=16",            # columnar interchange for the local store
+    "python-dotenv>=1.0",     # load ANTHROPIC_API_KEY + bootstrap admin from .env
+    "structlog>=24.1",        # structured JSON logging (run_id, no PII in bodies)
+    "bcrypt>=4.1",            # password hashing for the broker seats (auth)
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.5",
+    "black>=24.0",
+]
+
+[project.scripts]
+nexo = "nexo_os.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["nexo_os*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "W"]
+ignore = ["E501"]  # line length handled by black
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.pytest.ini_options]
+testpaths = ["nexo_os/tests"]
+addopts = "-q"
+filterwarnings = ["ignore::DeprecationWarning"]
