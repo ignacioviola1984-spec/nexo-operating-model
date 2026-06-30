@@ -35,6 +35,7 @@ switch ($Target) {
     "ingest"          { & $PY -m nexo_os.cli ingest $Rest[0] }
     "bootstrap-admin" { & $PY -m nexo_os.cli bootstrap-admin }
     "run"             { & $PY -m streamlit run nexo_os/dashboard/app.py }
+    "demo"            { & $PY -m streamlit run nexo_os/dashboard/demo.py }
     "test"            { & $PY -m pytest }
     "eval"            { & $PY -m nexo_os.evals.run_evals }
     "lint"            { & $PY -m ruff check nexo_os; & $PY -m black --check nexo_os }

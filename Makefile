@@ -30,8 +30,11 @@ ingest:                 ## Validate + load a workbook: make ingest WB=path/to.xl
 bootstrap-admin:        ## Provision the first admin from .env.
 	$(PY) -m nexo_os.cli bootstrap-admin
 
-run:                    ## Launch the local Streamlit dashboard.
+run:                    ## Launch the local Streamlit dashboard (production).
 	$(PY) -m streamlit run nexo_os/dashboard/app.py
+
+demo:                   ## Launch the public CV/portfolio demo (no login, synthetic).
+	$(PY) -m streamlit run nexo_os/dashboard/demo.py
 
 test:                   ## Run the test suite.
 	$(PY) -m pytest

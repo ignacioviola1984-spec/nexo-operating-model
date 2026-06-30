@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "nexo-demo",
+      "runtimeExecutable": "./.venv/Scripts/python.exe",
+      "runtimeArgs": ["-m", "streamlit", "run", "nexo_os/dashboard/demo.py", "--server.port", "8503", "--server.headless", "true", "--browser.gatherUsageStats", "false"],
+      "port": 8503
+    },
+    {
+      "name": "nexo-app",
+      "runtimeExecutable": "./.venv/Scripts/python.exe",
+      "runtimeArgs": ["-m", "streamlit", "run", "nexo_os/dashboard/app.py", "--server.port", "8504", "--server.headless", "true", "--browser.gatherUsageStats", "false"],
+      "port": 8504
+    }
+  ]
+}

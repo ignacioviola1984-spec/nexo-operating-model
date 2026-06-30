@@ -277,7 +277,9 @@ EVALS = [
 
 
 def main() -> int:
-    reload_settings()  # offline, deterministic
+    settings = reload_settings()
+    mode = "LLM (Claude)" if settings.llm_enabled else "offline (plantillas)"
+    print(f"Modo de prosa: {mode}  [grounding_guardrail valida la salida real en ambos]")
     results = []
     for name, fn in EVALS:
         with tempfile.TemporaryDirectory() as d:
