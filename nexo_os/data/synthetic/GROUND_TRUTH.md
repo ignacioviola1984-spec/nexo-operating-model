@@ -54,9 +54,14 @@ Overdue = unpaid installment with `fecha_vencimiento <= snapshot_fecha`; aging v
 | 90+ | 2 | 100,000 |
 
 - Overdue cuota IDs: Q-130-a, Q-130-b (1-30); Q-3160 (31-60); Q-6190 (61-90);
-  Q-90-a, Q-90-b (90+).
+  Q-90-a (POL-EXP-07), Q-90-b (POL-A1-a) (90+).
 - Not overdue: Q-PAID (pagada), Q-FUT (future), Q-PARC (future, parcial).
-- Delinquency rate / DSO / recovery-priority ordering *(formula in Phase 3)*.
+- Total receivable (outstanding over ALL unpaid cuotas, any due date) = **215,000**
+  (190,000 overdue + Q-FUT 10,000 + Q-PARC outstanding 15,000).
+- **Delinquency rate** = overdue / receivable = 190,000 / 215,000 = **0.8837**.
+- **DSO proxy** (Σ dias_mora × outstanding / Σ outstanding) = **114.32 days**.
+- Recovery priority = outstanding × dias_mora × segment_weight (premium ×1.5);
+  highest first. Top item = Q-90-a (POL-EXP-07, premium): 50,000 × 171 × 1.5.
 
 ## Seguimiento de comisiones
 
@@ -94,14 +99,16 @@ Expiring within N days of 2026-06-30 (cumulative), `estado=vigente`:
   ganado 1, perdido 1.
 - **Open pipeline (not ganado/perdido): 4** (L01, L02, L05, L06).
 - Quotes: **3**. **Bound (poliza_id set): 1** (COT-L03) -> **quote-to-bind = 1/3**.
-- Won = 1 (L03), lost = 1 (L04), closed = 2 -> lead-to-win = 1/2 of closed
-  (or 1/6 of all leads) *(definition fixed in Phase 3)*.
+- Won = 1 (L03), lost = 1 (L04), closed = 2 -> **lead-to-win (closed) = 0.5**;
+  lead-to-win (all leads) = 1/6 ≈ 0.1667.
 - Funnel flags:
   - **Lead sin cotización > 14d: 1** (L01, ingreso 2026-06-01 -> 29d).
   - **Cotización emitida no presentada > 10d: 1** (COT-L02, 2026-06-05 -> 25d).
   - **Lead estancado en etapa > 21d: 1** (L05, último mov. 2026-05-20 -> 41d).
 - Open quote value (Σ prima_cotizada of open leads' quotes) = **300,000**
-  (COT-L02 100,000 + COT-L05 200,000). Weighted forecast *(formula in Phase 3)*.
+  (COT-L02 100,000 + COT-L05 200,000).
+- **Weighted forecast = 185,000** (L02 cotizado 0.45×100,000=45,000 + L05
+  presentado 0.70×200,000=140,000; L01/L06 have no quote -> 0).
 
 ## Reconciliation tie-outs (enforced in Phase 6 / eval Phase 8)
 

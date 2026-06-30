@@ -61,6 +61,10 @@ class Thresholds(BaseSettings):
     hhi_concentration_threshold: float = 0.25
     shrinking_segment_pct: float = -0.10  # segment premium down > 10% vs prior snapshot
 
+    # --- Cobranza (recovery prioritization) ---
+    # Client-value multiplier applied to the 'premium' segment in recovery scoring.
+    recovery_premium_weight: float = 1.5
+
     # --- Commission receivable aging ---
     commission_terms_offset_days: int = 30  # settlement expected period-end + this
 

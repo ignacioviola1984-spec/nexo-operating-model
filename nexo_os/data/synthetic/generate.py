@@ -190,7 +190,7 @@ def _cuotas() -> list[Cuota]:
         _cu("Q-3160", "POL-A2-a", 5, date(2026, 5, 15), 30000, "vencida"),  # 46d -> 31-60
         _cu("Q-6190", "POL-A3-a", 4, date(2026, 4, 20), 40000, "vencida"),  # 71d -> 61-90
         _cu("Q-90-a", "POL-EXP-07", 1, date(2026, 1, 10), 50000, "vencida"),  # 171d -> 90+
-        _cu("Q-90-b", "POL-EXP-15", 1, date(2026, 1, 10), 50000, "vencida"),  # 171d -> 90+
+        _cu("Q-90-b", "POL-A1-a", 1, date(2026, 1, 10), 50000, "vencida"),  # 171d -> 90+
         # not overdue:
         _cu(
             "Q-PAID",

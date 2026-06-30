@@ -140,6 +140,27 @@ class SnapshotRepository(NexoRepository):
     def get_productores(self) -> list[Productor]:
         return self._read_operational(Productor, "productores")  # type: ignore[return-value]
 
+    def prev_polizas(self) -> list[Poliza]:
+        """Polizas of the most recent ARCHIVED snapshot (for growth), or []."""
+        snap = self.get_previous_snapshot()
+        if snap is None:
+            return []
+        return self._select(Poliza, "polizas", where="snapshot_id = ?", params=[snap.snapshot_id])  # type: ignore[return-value]
+
+    def prev_clientes(self) -> list[Cliente]:
+        """Clientes of the most recent ARCHIVED snapshot (for segment growth), or []."""
+        snap = self.get_previous_snapshot()
+        if snap is None:
+            return []
+        return self._select(Cliente, "clientes", where="snapshot_id = ?", params=[snap.snapshot_id])  # type: ignore[return-value]
+
+    def prev_cuotas(self) -> list[Cuota]:
+        """Cuotas of the most recent ARCHIVED snapshot (for mora trend), or []."""
+        snap = self.get_previous_snapshot()
+        if snap is None:
+            return []
+        return self._select(Cuota, "cuotas", where="snapshot_id = ?", params=[snap.snapshot_id])  # type: ignore[return-value]
+
     def has_siniestros(self) -> bool:
         n = self._con.execute(
             "SELECT count(*) FROM siniestros WHERE snapshot_id = ?", [self._active_id()]
