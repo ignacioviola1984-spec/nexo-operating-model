@@ -1,18 +1,18 @@
-# Nexo - Python dependencies (self-contained).
+# Runtime dependencies for deploying the Nexo v3 demo (Streamlit Community Cloud
+# reads this file). Runtime only - no dev/test tools. Mirrors the locked set in
+# requirements-v3.txt. The full pinned set (incl. dev) lives in requirements-v3.txt;
+# install that for local development: pip install -r requirements-v3.txt
 #
-#   pip install -r nexo/requirements.txt
-#
-# Nexo reuses the repo-root .env for ANTHROPIC_API_KEY (same key as the finance
-# projects). The deterministic core + tests + evals need only pandas/openpyxl and
-# run with NO API key; anthropic/streamlit are for the prose layer and the app.
+# No cloud SDKs: the data path is local (uploaded Excel -> local DuckDB snapshot).
 
-# --- deterministic core (data layer, detectors, metrics) - what tests/evals run ---
-pandas>=2.0
-openpyxl>=3.1        # read the cartera Excel and write the approved-actions Excel
-
-# --- prose layer (LLM drafts the Spanish messages + dashboard narrative) ---
-anthropic>=0.40      # Claude client; optional at runtime (offline template fallback)
-python-dotenv>=1.0   # loads ANTHROPIC_API_KEY from the repo-root .env
-
-# --- approval-inbox web app ---
-streamlit>=1.30      # nexo/app.py (HITL inbox + dashboard + export button)
+anthropic==0.113.0
+pydantic==2.13.4
+pydantic-settings==2.14.2
+streamlit==1.58.0
+pandas==3.0.3
+openpyxl==3.1.5
+duckdb==1.5.4
+pyarrow==24.0.0
+python-dotenv==1.2.2
+structlog==26.1.0
+bcrypt==5.0.0

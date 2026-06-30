@@ -1,0 +1,10 @@
+# Streamlit theme for the Nexo v3 demo.
+[theme]
+primaryColor = "#1F4E78"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F0F4F8"
+textColor = "#1A1A1A"
+font = "sans serif"
+
+[server]
+headless = true
