@@ -14,8 +14,18 @@ import json
 from abc import ABC, abstractmethod
 from decimal import Decimal
 
+from nexo_os.agents.narrate import draft, extract_numbers
+from nexo_os.config import Settings
 from nexo_os.data.schema.models import Accion, EstadoAccion, Prioridad
 from nexo_os.state import NexoContext
+
+_NARRATE_SYSTEM = (
+    "Sos un asistente de un productor de seguros en Argentina. Escribis en espanol "
+    "rioplatense, profesional y conciso. SOLO podes usar los numeros que aparecen en "
+    "los datos provistos; NUNCA inventes, estimes, redondees ni aproximes ninguna "
+    "cifra. No uses expresiones como 'casi', 'aproximadamente' ni cifras que no esten "
+    "en los datos. Redactas el mensaje de la accion propuesta; una persona lo aprueba."
+)
 
 
 def _json_default(o: object) -> object:
@@ -60,6 +70,34 @@ def build_accion(
         creada_en=ctx.now,
         run_id=ctx.run_id,
         snapshot_id=ctx.snapshot_id,
+    )
+
+
+def grounded_draft(
+    accion: Accion,
+    *,
+    instruccion: str,
+    fallback: str,
+    settings: Settings | None = None,
+) -> dict[str, str]:
+    """Draft the Spanish message for an action, gated by the grounding guard.
+
+    The allow-list is exactly the numbers in the action's rationale; the fallback
+    template (self-grounded) is used offline or whenever the guard rejects."""
+    rationale = json.loads(accion.rationale_json)
+    allowed = extract_numbers(rationale)
+    prompt = (
+        f"{instruccion}\n\n"
+        f"Datos deterministicos (unicas cifras permitidas):\n"
+        f"{json.dumps(rationale, ensure_ascii=False, sort_keys=True)}\n\n"
+        "Escribi 1-2 oraciones. No incluyas ninguna cifra que no este arriba."
+    )
+    return draft(
+        system=_NARRATE_SYSTEM,
+        prompt=prompt,
+        allowed_values=allowed,
+        fallback=fallback,
+        settings=settings,
     )
 
 
