@@ -1,8 +1,7 @@
 # SECURITY.md - Nexo Operating Model v3
 
-> Phase 0 stub. Filled out in Phase 9 (hardening). This file is the single place
-> that documents what data exists, where it lives, what is sent to the model, and
-> the retention/backup stance.
+This file is the single place that documents what data exists, where it lives,
+what is sent to the model, and the retention/backup stance.
 
 ## Threat model in one line
 
@@ -47,10 +46,19 @@ the approval+audit history.
   row's hash, so tampering is **detectable**. This is tamper-**evident**, not
   access control - it detects a break, it does not physically prevent one.
 
-## Backup (Phase 1/9)
+## Backup (the only safety net for the system of record)
 
-- `make backup` / `make restore` snapshot the local store. Keep backups off-repo
-  and protected (they contain PII). The admin UI surfaces the last backup date.
+The approval/audit history lives ONLY in the local store - there is no cloud
+backup. Losing the store loses that history. Therefore:
+
+- `make backup` writes a timestamped copy to `backups/` (after a DuckDB
+  CHECKPOINT, so it is consistent). `make restore FILE=...` restores it.
+- The admin UI (Carga de datos) shows the **last backup date** and offers a
+  "Crear backup ahora" button.
+- **Routine:** run `make backup` after each upload + review session (or schedule a
+  daily local copy). Keep backups **off this machine** and **encrypted/protected**
+  - they contain client PII. Never commit backups (the `backups/` dir is
+  gitignored). Test `make restore` periodically.
 
 ## Execution seam (disabled)
 

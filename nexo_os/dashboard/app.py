@@ -260,6 +260,17 @@ def carga_view(repo, session) -> None:
             st.error(S.UPLOAD_RECHAZADO)
         st.code(result.report.render_es(), language="text")
 
+    # Backup of the local system of record (PII; keep off-repo - see SECURITY.md).
+    from nexo_os.data import store as _store
+
+    st.divider()
+    st.subheader("Respaldo del store local")
+    last = _store.last_backup(_settings().backup_dir)
+    st.caption(f"Ultimo backup: {last.name if last else 'nunca'}")
+    if st.button("Crear backup ahora"):
+        dest = _store.backup(_settings().store_path, _settings().backup_dir)
+        st.success(f"Backup creado: {dest.name}")
+
 
 def bandeja_view(repo, session) -> None:
     st.header(S.NAV_BANDEJA)

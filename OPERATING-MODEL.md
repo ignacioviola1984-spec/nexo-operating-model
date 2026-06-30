@@ -1,95 +1,68 @@
-# Nexo - modelo operativo (arquitectura)
+# Nexo v3 - modelo operativo (como funciona)
 
-Nexo re-implementa, para el dominio del productor de seguros, el mismo **modelo
-operativo confiable** del CFO office: el modelo trabaja, pero hay **controles de
-código** y un **humano** en los puntos críticos. Nada de Nexo importa código de
-finanzas; replica los **patrones**.
+Nexo trabaja como una **linea de produccion con controles**: el modelo de lenguaje
+opera, pero hay **controles de codigo** y un **humano** en los puntos criticos. La
+frontera entre lo determinístico y lo generado es la idea central.
 
-## El espejo con el modelo financiero
-
-| Pieza de Nexo | Patrón de origen (finanzas) | Qué se reusó |
-|---------------|------------------------------|--------------|
-| `cartera_core.py` | `orchestration/finance_core.py` | cálculo determinístico; una sola fuente de números |
-| `shared_state.py` (`CarteraContext`) | `cfo-office/shared_state.py` (`CFOContext`) | libro común `put/get`, flags, audit trail, persistencia a JSON |
-| `review.py` (un solo checker) | `cfo-office/review.py` (maker-checker) | simplificado a **un** checker: el productor |
-| `nexo_orchestrator.py` | `cfo-office/cfo_orchestrator.py` | correr agentes sobre el estado, cross-checks, consolidar, gate final |
-| `app.py` | `webapp/app.py` | UI con el HITL **como botón** |
-| capa de confiabilidad | `orchestration/operating_model.py` | checks determinísticos entre etapas, audit con timestamp, escalamiento por severidad, gate HITL |
-
-## El pipeline
+## La frontera: numeros en codigo, prosa del modelo
 
 ```
-            cartera.xlsx
-                 │
-                 ▼
-        ┌──────────────────┐   los números salen de cartera_core (determinístico)
-        │  cartera_core    │   los agentes sólo redactan; el guard frena cifras inventadas
-        └──────────────────┘
-                 │  detección estructurada
-                 ▼
-   ┌───────────────────────────────────────────────────────┐
-   │  5 agentes (maker) sobre un CarteraContext compartido  │
-   │  analisis · renovaciones · cobranza · reactivacion ·   │
-   │  cross_sell  → cada acción entra como `pendiente`      │
-   └───────────────────────────────────────────────────────┘
-                 │
-                 ▼
-        ┌──────────────────┐   el inbox reconcilia con los detectores
-        │   cross-checks   │   (si un agente se desvía de la fuente de números, salta acá)
-        └──────────────────┘
-                 │  ok
-                 ▼
-        ┌──────────────────┐   ordenada por severidad y luego confianza
-        │  inbox priorizada│
-        └──────────────────┘
-                 │
-                 ▼
-        ┌──────────────────┐   el productor (único checker) aprueba / edita / rechaza
-        │   gate HITL      │   auto-approve sólo en CI/replay, marcado `by="auto"`
-        └──────────────────┘
-                 │  sólo aprobadas/editadas
-                 ▼
-     Excel (acciones + dashboard)        audit trail (audit_log.jsonl + nexo_state.json)
+            DETERMINISTICO (codigo)                 |   MODELO (solo prosa)
+  ---------------------------------------------------+--------------------------
+  ingesta -> snapshot -> core (cada cifra)           |
+   -> propose (confianza, prioridad, rationale)      |  narrate(result, accion)
+   -> reconciliaciones                               |   redacta el mensaje ES
+   -> persistencia + audit + HITL                    |   con guard de grounding
 ```
 
-## Las dos capas de confiabilidad
+- **Core** (`nexo_os/core/`): funciones puras sobre objetos tipados, `Decimal`
+  para dinero, sin I/O salvo el repositorio, sin llamadas al modelo. Es el unico
+  lugar donde nace un numero. Tests golden contra `GROUND_TRUTH.md`.
+- **Agentes** (`compute -> propose -> narrate`): `compute` y `propose` son
+  deterministicos (confianza y prioridad por formula, §11). `narrate` es la unica
+  parte que llama al modelo, y solo redacta prosa.
+- **Guard de grounding** (`agents/narrate.py`): toda cifra del texto del modelo
+  debe coincidir exactamente con un valor del `rationale` de esa accion; si
+  aparece un numero inventado/redondeado, se rechaza la prosa y se usa la
+  plantilla determinística. Es el muro del no-negociable #1.
 
-1. **Controles de código entre el modelo y la salida.**
-   - El **guard de grounding** (`llm.py`) rechaza cualquier cifra del modelo que
-     no esté en el payload del agente; cae a la plantilla determinística. La
-     prosa sin fundamento nunca se emite.
-   - Los **cross-checks** (`nexo_orchestrator.cross_checks`) prueban que el inbox
-     reconcilia con los detectores: el conteo de acciones por tipo == lo que
-     reportó cada agente, `propuestos ≤ detectados`, los buckets de mora suman su
-     total, y las métricas del panel concuerdan con los detectores
-     (`polizas_en_mora`, vencimientos, total de pólizas). Es la misma idea que el
-     `cross_checks` del CFO: si un agente deriva distinto, salta acá y no en la
-     salida.
+## El ciclo (orchestrator)
 
-2. **Humano en el punto crítico (HITL).**
-   - Un solo checker, el **productor**. Toda acción es `pendiente` hasta que él
-     decide. Sólo lo aprobado/editado se exporta; los rechazos quedan logueados.
-   - El registro **quién/qué/cuándo** (reviewer, decisión, nota, timestamps) es la
-     evidencia de control que el patrón maker-checker exige, simplificada a un
-     único firmante.
+1. Cargar el repositorio del **snapshot activo** (define la fecha as-of; sin
+   `now()` disperso).
+2. Cada agente `compute` (via core) en orden de valor de accion (cobranza y
+   renovaciones primero).
+3. `propose`: cifras -> acciones con confianza/prioridad/rationale deterministicos.
+4. **Reconciliaciones** (`reliability.py`): cartera<->comisiones (prima y base),
+   buckets de cobranza, subset de renovaciones. Un quiebre fuera de tolerancia ->
+   se marca la corrida `con_warnings` y se escala; nunca se suaviza en silencio.
+5. `narrate` (modelo) con guard de grounding -> mensaje en espanol.
+6. Persistir `acciones`, `agent_runs`, `audit_log`; devolver el `NexoContext`.
+7. Estado de corrida: `ok | con_warnings | error`. Ante una excepcion, la corrida
+   reporta `error`; no emite numeros parciales como completos (falla cerrado).
 
-## Trazabilidad
+## Maker-checker (HITL)
 
-Cada paso -cada propuesta de agente, cada flag, cada decisión, cada cross-check-
-se agrega al **audit trail** en memoria y al `nexo/audit_log.jsonl` (append-only),
-y el estado completo (agentes, flags, audit, inbox, métricas) se persiste a
-`nexo/nexo_state.json`. Se sabe quién escribió qué y cuándo: el sistema es
-auditable y **replayable** (con `NEXO_AUTO_APPROVE=1` corre de punta a punta sin
-intervención, reproduciendo los mismos números).
+Toda accion nace `propuesta`. El productor la resuelve en la **Bandeja**:
+`aprobada | editada | rechazada`. Cada decision registra usuario + timestamp en la
+fila y en el **audit log encadenado por hash**. Aprobar **registra** la decision;
+no envia nada (el seam de ejecucion es `NoopExecutionAdapter`, deshabilitado).
 
-## Separación determinístico / LLM (la regla dura)
+## Confianza y prioridad (deterministicas, §11)
 
-- **Determinístico (código):** detección, conteos, fechas, montos, buckets,
-  primas, comisiones, score de confianza, severidad, selección de
-  cliente/póliza, métricas, cross-checks, export.
-- **LLM (prosa):** el texto de cada mensaje y la narrativa del panel - y siempre
-  pasando por el guard de grounding.
+- **Confianza** (0-1) = `W_DATA·completitud_de_datos + W_SIGNAL·fuerza_de_senal`.
+  Nunca la produce el modelo.
+- **Prioridad** (alta/media/baja) = combinacion del **monto en juego** y la
+  **urgencia** (vencimiento/antiguedad). Cuando no hay monto natural,
+  `monto_en_juego_ars` es nulo y se usa una rama **solo-urgencia**; nunca se
+  sustituye ni infiere un monto.
 
-Si el LLM no está disponible o se desactiva, el sistema funciona igual con
-plantillas determinísticas. Lo que **nunca** cambia es que ningún número proviene
-del modelo.
+## Datos y trazabilidad
+
+Una sola frontera de datos (`NexoRepository`); agentes y core nunca leen un archivo
+ni corren una query directo. El snapshot activo es inmutable; subir un workbook
+valido lo archiva y crea uno nuevo. Aging y `diferencia_ars` se calculan a la
+lectura contra la fecha del snapshot (nunca se almacenan), asi nunca discrepan.
+
+Ver [README.md](README.md) para correrlo y [SECURITY.md](SECURITY.md) para datos,
+PII, backups y auditoria.
